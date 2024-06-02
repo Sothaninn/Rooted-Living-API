@@ -1,7 +1,9 @@
 const express = require('express');
 const connectDB = require('./config/db');
-
+const bodyParser = require('body-parser') ;
 const app = express();
+
+const cors = require('cors') ;
 
 //connect to the database
 connectDB();
@@ -12,6 +14,8 @@ app.use(express.json());
 // Use cookie parser middleware
 const cookieParser = require('cookie-parser');
 app.use(cookieParser());
+app.use(bodyParser.json());
+app.use(cors());
 
 //define the routes
 app.use('/users',require('./routes/users'));

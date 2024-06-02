@@ -45,32 +45,33 @@ router.post(
                 password,
                 role,
                 address,
-                number
+                number,
+                shoppingCart:[]
             });
 
             user.password = await bcrypt.hash(password, 10);
 
             await user.save();
 
-            //create a payload that contains the user id, encrypt it with the secret key to generate a token
-            const payload = {
-                user:{
-                    id:user._id
-                }
-            };
+            // //create a payload that contains the user id, encrypt it with the secret key to generate a token
+            // const payload = {
+            //     user:{
+            //         id:user._id
+            //     }
+            // };
             
-            const token = jwt.sign(payload, jwtSecret);
-            console.log(token);
-            //just storing it in cookies for testing purpose
-            res.cookie('token', token, { httpOnly: true });
-            res.json({token});
+            // const token = jwt.sign(payload, jwtSecret);
+            // console.log(token);
+            // //just storing it in cookies for testing purpose
+            // res.cookie('token', token, { httpOnly: true });
+            // res.json({token});
 
-            // jwt.sign(payload, jwtSecret , (err, token) => {
-            //     if (err) throw err;
-            //     res.json({token});
-            // });
+            // // jwt.sign(payload, jwtSecret , (err, token) => {
+            // //     if (err) throw err;
+            // //     res.json({token});
+            // // });
 
-            res.json({message:"Account has been successfully created!"})
+            res.json({user, message:"Account has been successfully created!"})
 
         }catch (err){
             console.error(err);
@@ -81,11 +82,11 @@ router.post(
 );
 
 //update user profile
-router.put('/', auth, async (req, res)=>{
-    const {username, email, password, address, number} = req.body;   
+router.put('/', async (req, res)=>{
+    const {userId, username, email, password, address, number} = req.body;   
     //try to find the current user and update
     try{
-        let user = await User.findById(req.user.id);
+        let user = await User.findById(userId);
 
         //update
         if (username) user.username = username;
@@ -106,7 +107,7 @@ router.put('/', auth, async (req, res)=>{
         let updatedUser = user.toObject();
         delete updatedUser.password;
 
-        return res.json(updatedUser);
+        return res.status(200).json({ user: updatedUser });
         
     }catch(err){
         console.error(err.message);

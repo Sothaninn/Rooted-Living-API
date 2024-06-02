@@ -6,7 +6,7 @@ const User = require('../models/User');
 const Product = require('../models/Product');
 
 //Add a new product
-router.post('/', [auth, [
+router.post('/', [
     check('name', 'Name is required').not().isEmpty(),
     check('price', 'Price is required').not().isEmpty(),
     check('description', 'Description is required').not().isEmpty(),
@@ -14,7 +14,7 @@ router.post('/', [auth, [
     check('type', 'type is required').not().isEmpty(),
     check('quantity', 'quantity needs to be of type Int and minumum 0').isInt({ min: 0 }),
     check('type', 'type needs to be one of our Enums').isIn(['tool', 'plant', 'seed', 'planter'])
-]], async (req, res) =>{
+], async (req, res) =>{
     const errors = validationResult(req);
     if(!errors.isEmpty()){
         return res.status(400).json({ err: errors.array() });
@@ -23,13 +23,16 @@ router.post('/', [auth, [
     const {name, price, description, quantity, type} = req.body;
     try{
         //check if user is admin
-        const user = await User.findById(req.user.id);
+        const user = await User.findById(req.body.userId);
         if (user.role !== 'admin'){
             return res.status(403).json ({message:'Permission denied.'});
         }
+        
+        const image = `${name.replace(/\s+/g, '_')}`;
 
         const newProduct = new Product({
             name,
+            picture: image,
             price,
             description,
             quantity,
@@ -48,7 +51,7 @@ router.post('/', [auth, [
 router.get('/', async (req, res)=> {
     try{
         const products = await Product.find();
-        res.json(products);
+        res.status(200).json({ products: products });
     }catch(err){
         console.error(err.message);
         res.status(500).send('Server error');
@@ -107,11 +110,11 @@ router.get('/type/:type', async (req, res)=> {
 
 
 //Update a product by id
-router.put('/:id', auth, async (req, res) =>{
+router.put('/:id', async (req, res) =>{
     const {name, price, description, quantity, type} = req.body;
     try{
         //check if user is admin
-        const user = await User.findById(req.user.id);
+        const user = await User.findById(req.body.userId);
         if (user.role !== 'admin'){
             return res.status(403).json ({message:'Permission denied.'});
         }
@@ -137,10 +140,10 @@ router.put('/:id', auth, async (req, res) =>{
 });
 
 // delete a product by id
-router.delete('/:id', auth, async (req, res)=>{
+router.delete('/:id', async (req, res)=>{
     try{
         //check if user is admin
-        const user = await User.findById(req.user.id);
+        const user = await User.findById(req.body.userId);
         if (user.role !== 'admin'){
             return res.status(403).json ({message:'Permission denied.'});
         }

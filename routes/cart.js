@@ -7,19 +7,18 @@ const Product = require('../models/Product');
 //add a product to cart
 router.post('/', async (req, res) => {
     try{
-        const user = await User.findById(req.user.id);
+        
 
+        
+        const {userId, productId, quantity} = req.body;
         //check if the product exists in the database
-        const {productId, quantity} = req.body;
         const product = await Product.findById(productId);
         if (!product){
             return res.status(404).json({message:'Product not found'});
         }
-          // Log the value of productId to debug
-          console.log('productId:', productId);
-            // Log the value of productId to debug
-        console.log('user.shoppingCart:', user.shoppingCart);
 
+        const user = await User.findById(userId);
+        console.log(user);
         //check if the product is already in the cart
         const inCart = user.shoppingCart.find(item => item.product.toString() === productId);
         if (inCart){
@@ -30,7 +29,7 @@ router.post('/', async (req, res) => {
             user.shoppingCart.push({product: productId, quantity});
         }
         await user.save();
-        res.json({message: 'Product added to shopping cart'});
+        res.status(201).json({message: 'Product added to shopping cart'});
 
     }catch(err){
         console.error(err.message);
@@ -39,10 +38,11 @@ router.post('/', async (req, res) => {
 });
 
 //Get all products from cart
-router.get('/', auth, async (req, res) => {
+router.get('/', async (req, res) => {
     try{
-        const user = await User.findById(req.user.id);
-        res.json(user.shoppingCart);        
+        console.log(req.query.userId);
+        const user = await User.findById(req.query.userId);
+        res.status(200).json({ cart: user.shoppingCart });        
     }catch(err){
         console.error(err.message);
         res.status(500).send('Server error')
@@ -50,9 +50,9 @@ router.get('/', auth, async (req, res) => {
 });
 
 //change the product quantity
-router.put('/:id', auth, async (req, res)=>{
+router.put('/:id', async (req, res)=>{
     try{
-        const user = await User.findById(req.user.id);
+        const user = await User.findById(req.body.userId);
         const productInCart = user.shoppingCart.find(item => item.product.toString() === req.params.id);
 
         if (!productInCart) {
@@ -62,7 +62,7 @@ router.put('/:id', auth, async (req, res)=>{
         productInCart.quantity=req.body.quantity;
 
         await user.save();
-        res.json({message:'Updated the quantity of the product in the shopping cart'});        
+        res.status(200).json({message:'Updated the quantity of the product in the shopping cart'});        
     }catch(err){
         console.error(err.message);
         res.status(500).send('Server error')
@@ -70,15 +70,15 @@ router.put('/:id', auth, async (req, res)=>{
 });
 
 //remove a product from cart
-router.delete('/:id', auth, async (req, res) => {
+router.delete('/:id', async (req, res) => {
     try{
-        const user = await User.findById(req.user.id);
+        const user = await User.findById(req.body.userId);
 
         //filter out the product from cart
         user.shoppingCart = user.shoppingCart.filter(item => item.product.toString() !== req.params.id)
         
         await user.save();
-        res.json({message:'Product removed from shopping cart'});        
+        res.status(200).json({message:'Product removed from shopping cart', cart: user.shoppingCart});        
     }catch(err){
         console.error(err.message);
         res.status(500).send('Server error')
@@ -86,9 +86,9 @@ router.delete('/:id', auth, async (req, res) => {
 });
 
 //remove all products from cart
-router.delete('/', auth, async (req, res) => {
+router.delete('/', async (req, res) => {
     try{
-        const user = await User.findById(req.user.id);
+        const user = await User.findById(req.body.userId);
 
         //filter out the product from cart
         user.shoppingCart = [];

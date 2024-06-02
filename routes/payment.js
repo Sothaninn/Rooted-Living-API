@@ -5,9 +5,9 @@ const User = require('../models/User');
 const Product = require('../models/Product');
 
 // pay for the products in cart
-router.post('/', auth, async (req, res) => {
+router.post('/', async (req, res) => {
     try{
-        const user = await User.findById(req.user.id);
+        const user = await User.findById(req.body.userId);
 
         for (const item of user.shoppingCart){
             //check if the product exists in the database
@@ -24,7 +24,7 @@ router.post('/', auth, async (req, res) => {
         user.shoppingCart = [];
         await user.save();
         
-        res.json({message:'Payment successful'});
+        res.status(201).json({message:'Payment successful'});
         
     }catch(err){
         console.error(err.message);

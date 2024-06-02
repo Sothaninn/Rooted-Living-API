@@ -10,10 +10,10 @@ const auth = require('../middleware/auth');
 const User = require('../models/User');
 
 //get logged in user without password
-router.get('/', auth, async (req,res)=>{
+router.get('/', async (req,res)=>{
     try{
-        const user = await User.findById(req.user.id).select('-password');
-        res.json(user);
+        const user = await User.findById(req.query.userId).select('-password');
+        res.status(200).json({user: user});
     }catch(err){
         console.error(err.message);
         res.status(500).send('Server error')
@@ -27,6 +27,7 @@ router.post('/',
         check('password', 'Password is required').not().isEmpty()
     ],
     async (req, res) => {
+        console.log(req.body)
         const errors= validationResult(req);
         if(!errors.isEmpty()){
             return res.status(400).json({ errors: errors.array() });
@@ -46,18 +47,19 @@ router.post('/',
                 return res.status(400).json({msg:'The Password is invalid'});
             }
 
-            const payload = {
-                user:
-                {
-                    id:user._id
-                }
-            };
+            // const payload = {
+            //     user:
+            //     {
+            //         id:user._id
+            //     }
+            // };
 
-            const token = jwt.sign(payload, jwtSecret);
-            console.log(token);
-            //just storing it in cookies for testing purpose
-            res.cookie('token', token, { httpOnly: true });
-            res.json({token});
+            // const token = jwt.sign(payload, jwtSecret);
+            // console.log(token);
+            // //just storing it in cookies for testing purpose
+            // res.cookie('token', token, { httpOnly: true });
+            // res.json({user});
+            res.status(201).json({user: user});
 
         } catch(err){
             console.error(err.message);
@@ -68,7 +70,7 @@ router.post('/',
 
 //LOGOUT
 router.post('/logout', (req, res) => {
-    res.clearCookie('token');
+    //res.clearCookie('token');
     res.json({ message: 'Logout successful' });
 });
 
