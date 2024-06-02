@@ -15,7 +15,6 @@ router.post('/', async (req, res) => {
             if (!product || product.quantity<item.quantity){
                 return res.status(400).json({message:'Inssufficient quantity for product: ' + product.name});
             }
-            //reduce the item in database
             product.quantity -= item.quantity;
             await product.save();
         }

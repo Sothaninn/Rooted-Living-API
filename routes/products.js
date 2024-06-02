@@ -153,6 +153,10 @@ router.delete('/:id', async (req, res)=>{
             return res.status(404).json({message: 'Product not found'});
         }
 
+         //filter out the product from cart
+         user.shoppingCart = user.shoppingCart.filter(item => item.product.toString() !== req.params.id)
+         await user.save();
+
         res.json({message: 'Product has been successfully removed'});
     }catch(err){
         console.error(err.message);
