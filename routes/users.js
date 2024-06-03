@@ -17,10 +17,7 @@ const User = require('../models/User');
 router.post(
     '/',
     [
-        check('username', 'Username is required').not().isEmpty(),
         check('email', 'Email is required').not().isEmpty(),
-        check('email', 'Please include a valid email').isEmail(),
-        check('email', 'Please enter a password with 6 or more characters').isLength({min:6}),
         check('role', 'Role is required').not().isEmpty(),
         check('role', 'Invalid role').isIn(['admin', 'user']),
     ], 
@@ -87,7 +84,7 @@ router.put('/', async (req, res)=>{
     //try to find the current user and update
     try{
         let user = await User.findById(userId);
-
+        console.log(req.body)
         //update
         if (username) user.username = username;
         if (email) {

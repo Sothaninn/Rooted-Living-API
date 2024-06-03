@@ -9,7 +9,6 @@ const Product = require('../models/Product');
 router.post('/', [
     check('name', 'Name is required').not().isEmpty(),
     check('price', 'Price is required').not().isEmpty(),
-    check('description', 'Description is required').not().isEmpty(),
     check('quantity', 'quantity is required').not().isEmpty(),
     check('type', 'type is required').not().isEmpty(),
     check('quantity', 'quantity needs to be of type Int and minumum 0').isInt({ min: 0 }),
@@ -153,9 +152,12 @@ router.delete('/:id', async (req, res)=>{
             return res.status(404).json({message: 'Product not found'});
         }
 
-         //filter out the product from cart
-         user.shoppingCart = user.shoppingCart.filter(item => item.product.toString() !== req.params.id)
-         await user.save();
+        // Remove the product from all users' shopping carts
+        await User.updateMany(
+            { "shoppingCart.product": req.params.id },
+            { $pull: { shoppingCart: { product: req.params.id } } }
+        );
+
 
         res.json({message: 'Product has been successfully removed'});
     }catch(err){
